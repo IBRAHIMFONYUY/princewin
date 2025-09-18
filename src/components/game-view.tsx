@@ -6,8 +6,7 @@ import {
   Area,
   ResponsiveContainer,
 } from "recharts";
-import { Card, CardContent } from "@/components/ui/card";
-import { BetControls } from "@/components/bet-controls";
+import { Card } from "@/components/ui/card";
 import { PlaneIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
@@ -66,9 +65,9 @@ export function GameView() {
   
   const backgroundClass = useMemo(() => {
     return {
-      waiting: "from-blue-900/40 to-card",
-      running: "from-purple-900/40 to-card",
-      crashed: "from-red-900/50 to-card",
+      waiting: "from-background to-background",
+      running: "from-background to-background",
+      crashed: "from-red-900/20 to-background",
     }[gameState];
   }, [gameState]);
 
@@ -95,59 +94,63 @@ export function GameView() {
 
 
   return (
-    <Card className="flex flex-col h-[500px] md:h-auto">
-      <CardContent className="p-2 sm:p-4 flex-grow flex flex-col">
-        <div
-          ref={chartContainerRef}
-          className={cn(
-            "relative flex-grow rounded-lg overflow-hidden bg-gradient-to-b transition-all duration-500",
-            backgroundClass
-          )}
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData}>
-              <defs>
-                <linearGradient id="colorMultiplier" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area
-                type="monotone"
-                dataKey="multiplier"
-                stroke="hsl(var(--primary))"
-                strokeWidth={3}
-                fillOpacity={1}
-                fill="url(#colorMultiplier)"
-                isAnimationActive={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-          
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-8">
-            <h2 className={cn("text-5xl md:text-8xl font-bold font-headline transition-colors duration-300",
-                gameState === 'running' && 'text-white',
-                gameState === 'waiting' && 'text-gray-400',
-                gameState === 'crashed' && 'text-red-500'
-            )}>
-              {gameState === 'waiting' && `Starting in...`}
-              {gameState === 'running' && `${multiplier.toFixed(2)}x`}
-              {gameState === 'crashed' && `Crashed @ ${multiplier.toFixed(2)}x`}
-            </h2>
-          </div>
-          
-           <PlaneIcon
-              className={cn(
-                "w-10 h-10 text-primary absolute bottom-4 left-4 transition-transform duration-100 ease-linear",
-                { "opacity-0": gameState !== "running" }
-              )}
-              style={{
-                transform: `translate(${planePosition.x}px, -${planePosition.y}px) rotate(${planePosition.angle}deg)`,
-              }}
+    <Card className="flex flex-col h-[500px] md:h-auto border-primary/20">
+      <div className="p-2 border-b border-primary/20 flex justify-between items-center">
+        <span className="text-lg font-bold text-primary">{multiplier.toFixed(2)}x</span>
+        {gameState === 'waiting' && <span className="text-sm font-semibold text-yellow-500">WAITING</span>}
+      </div>
+      <div
+        ref={chartContainerRef}
+        className={cn(
+          "relative flex-grow rounded-b-lg overflow-hidden bg-gradient-to-b transition-all duration-500",
+          backgroundClass
+        )}
+      >
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-repeat opacity-5"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,hsl(var(--background))_90%)]"></div>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData}>
+            <defs>
+              <linearGradient id="colorMultiplier" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <Area
+              type="monotone"
+              dataKey="multiplier"
+              stroke="hsl(var(--primary))"
+              strokeWidth={3}
+              fillOpacity={1}
+              fill="url(#colorMultiplier)"
+              isAnimationActive={false}
             />
+          </AreaChart>
+        </ResponsiveContainer>
+        
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-8">
+          <h2 className={cn("text-5xl md:text-8xl font-bold font-headline transition-colors duration-300 text-shadow-lg",
+              {
+                'text-primary/80': gameState === 'running',
+                'text-muted-foreground': gameState === 'waiting',
+                'text-red-500': gameState === 'crashed'
+              },
+          )}>
+            {gameState === 'running' && `${multiplier.toFixed(2)}x`}
+            {gameState === 'crashed' && `Crashed @ ${multiplier.toFixed(2)}x`}
+          </h2>
         </div>
-        <BetControls gameState={gameState} currentMultiplier={multiplier} />
-      </CardContent>
+        
+         <PlaneIcon
+            className={cn(
+              "w-8 h-8 text-primary absolute bottom-4 left-4 transition-transform duration-100 ease-linear",
+              { "opacity-0": gameState !== "running" }
+            )}
+            style={{
+              transform: `translate(${planePosition.x}px, -${planePosition.y}px) rotate(${planePosition.angle}deg)`,
+            }}
+          />
+      </div>
     </Card>
   );
 }

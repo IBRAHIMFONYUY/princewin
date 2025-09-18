@@ -16,6 +16,10 @@ export default {
       },
     },
     extend: {
+      textShadow: {
+        DEFAULT: '0 2px 4px rgba(0, 0, 0, 0.25)',
+        lg: '0 4px 10px rgba(0, 0, 0, 0.3)',
+      },
       fontFamily: {
         body: ['"Space Grotesk"', 'sans-serif'],
         headline: ['"Space Grotesk"', 'sans-serif'],
@@ -102,5 +106,18 @@ export default {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    function ({ addUtilities, theme }: {addUtilities: any, theme: any}) {
+      const newUtilities = {
+        '.text-shadow': {
+          textShadow: theme('textShadow.DEFAULT'),
+        },
+        '.text-shadow-lg': {
+          textShadow: theme('textShadow.lg'),
+        },
+      };
+      addUtilities(newUtilities, ['responsive', 'hover']);
+    },
+  ],
 } satisfies Config;
