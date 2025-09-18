@@ -11,16 +11,16 @@ import { Badge } from "@/components/ui/badge";
 import { ProvablyFairModal } from "./provably-fair-modal";
 
 const mockHistory = [
-  { id: 1, crashPoint: 2.34, players: 15, profit: 0.002 },
-  { id: 2, crashPoint: 1.0, players: 12, profit: -0.001 },
-  { id: 3, crashPoint: 10.12, players: 22, profit: 0.015 },
-  { id: 4, crashPoint: 1.56, players: 18, profit: 0.001 },
-  { id: 5, crashPoint: 3.45, players: 20, profit: 0.004 },
-  { id: 6, crashPoint: 5.89, players: 25, profit: 0.008 },
-  { id: 7, crashPoint: 1.21, players: 14, profit: -0.0005 },
-  { id: 8, crashPoint: 1.99, players: 19, profit: 0.0018 },
-  { id: 9, crashPoint: 25.01, players: 30, profit: 0.05 },
-  { id: 10, crashPoint: 4.2, players: 21, profit: 0.006 },
+  { id: 1, crashPoint: 2.34, bet: 10, profit: 13.4, result: "win" },
+  { id: 2, crashPoint: 1.0, bet: 10, profit: -10, result: "loss" },
+  { id: 3, crashPoint: 10.12, bet: 5, profit: 45.6, result: "win" },
+  { id: 4, crashPoint: 1.56, bet: 20, profit: -20, result: "loss" },
+  { id: 5, crashPoint: 3.45, bet: 15, profit: 36.75, result: "win" },
+  { id: 6, crashPoint: 5.89, bet: 10, profit: -10, result: "loss" },
+  { id: 7, crashPoint: 1.21, bet: 50, profit: -50, result: "loss" },
+  { id: 8, crashPoint: 1.99, bet: 25, profit: 24.75, result: "win" },
+  { id: 9, crashPoint: 25.01, bet: 2, profit: 48.02, result: "win" },
+  { id: 10, crashPoint: 4.2, bet: 10, profit: -10, result: "loss" },
 ];
 
 export function History() {
@@ -30,6 +30,8 @@ export function History() {
         <TableHeader>
           <TableRow>
             <TableHead>Crash</TableHead>
+            <TableHead>Bet</TableHead>
+            <TableHead>Profit</TableHead>
             <TableHead className="text-right">Verify</TableHead>
           </TableRow>
         </TableHeader>
@@ -43,6 +45,10 @@ export function History() {
                 >
                   {item.crashPoint.toFixed(2)}x
                 </Badge>
+              </TableCell>
+              <TableCell>{item.bet.toFixed(2)}</TableCell>
+              <TableCell className={item.result === 'win' ? 'text-green-500' : 'text-red-500'}>
+                 {item.profit.toFixed(2)}
               </TableCell>
               <TableCell className="text-right">
                 <ProvablyFairModal

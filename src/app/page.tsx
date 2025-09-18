@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BetControls } from "@/components/bet-controls";
+import { Leaderboard } from "@/components/leaderboard";
 
 export default function Home() {
   return (
@@ -18,12 +19,13 @@ export default function Home() {
           <GameView />
           <div className="flex flex-col gap-4">
             <Card>
-              <BetControls gameState={"waiting"} currentMultiplier={1.0} />
+              <BetControls />
             </Card>
             <Card className="flex flex-col overflow-hidden flex-grow">
               <Tabs defaultValue="history" className="h-full flex flex-col">
-                <TabsList className="grid w-full grid-cols-2 rounded-none">
+                <TabsList className="grid w-full grid-cols-3 rounded-none">
                   <TabsTrigger value="history">History</TabsTrigger>
+                  <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
                   <TabsTrigger value="achievements">Achievements</TabsTrigger>
                 </TabsList>
                 <TabsContent
@@ -32,6 +34,14 @@ export default function Home() {
                 >
                   <ScrollArea className="h-full">
                     <History />
+                  </ScrollArea>
+                </TabsContent>
+                <TabsContent
+                  value="leaderboard"
+                  className="flex-grow mt-0 overflow-hidden"
+                >
+                  <ScrollArea className="h-full">
+                    <Leaderboard />
                   </ScrollArea>
                 </TabsContent>
                 <TabsContent
