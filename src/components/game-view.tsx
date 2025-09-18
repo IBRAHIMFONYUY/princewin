@@ -1,83 +1,18 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { AreaChart, Area, ResponsiveContainer } from "recharts";
 import { Card } from "@/components/ui/card";
 import { PlaneIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
+import { useGame } from "@/context/game-provider";
 
-type GameState = "waiting" | "in-progress" | "crashed";
 type ChartDataPoint = { time: number; multiplier: number };
 
-const GAME_TICK_MS = 100;
-const WAITING_TIME_MS = 5000;
-const CRASHED_DELAY_MS = 3000;
 
 export function GameView() {
-  const [gameState, setGameState] = useState<GameState>("waiting");
-  const [multiplier, setMultiplier] = useState(1.0);
-  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
-  const [startTime, setStartTime] = useState(0);
-  const [countdown, setCountdown] = useState(WAITING_TIME_MS / 1000);
+  const { gameState, multiplier, chartData, countdown } = useGame();
   const chartContainerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    let gameLoop: NodeJS.Timeout;
-
-    if (gameState === "waiting") {
-      setMultiplier(1.0);
-      setChartData([{ time: 0, multiplier: 1.0 }]);
-      const countdownInterval = setInterval(() => {
-        setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
-      }, 1000);
-      gameLoop = setTimeout(() => {
-        setGameState("in-progress");
-        setStartTime(Date.now());
-        clearInterval(countdownInterval);
-      }, WAITING_TIME_MS);
-
-      return () => {
-        clearTimeout(gameLoop);
-        clearInterval(countdownInterval);
-        setCountdown(WAITING_TIME_MS / 1000);
-      };
-    }
-
-    if (gameState === "in-progress") {
-      const crashPoint =
-        1 + Math.random() * 5 + (Math.random() > 0.9 ? Math.random() * 10 : 0);
-
-      gameLoop = setInterval(() => {
-        const elapsedTime = (Date.now() - startTime) / 1000;
-        const newMultiplier = Math.pow(1.07, elapsedTime);
-
-        if (newMultiplier >= crashPoint) {
-          setMultiplier(crashPoint);
-          setChartData((prev) => [
-            ...prev,
-            { time: elapsedTime, multiplier: crashPoint },
-          ]);
-          setGameState("crashed");
-        } else {
-          setMultiplier(newMultiplier);
-          setChartData((prev) => [
-            ...prev,
-            { time: elapsedTime, multiplier: newMultiplier },
-          ]);
-        }
-      }, GAME_TICK_MS);
-
-      return () => clearInterval(gameLoop);
-    }
-
-    if (gameState === "crashed") {
-      gameLoop = setTimeout(() => {
-        setGameState("waiting");
-      }, CRASHED_DELAY_MS);
-
-      return () => clearTimeout(gameLoop);
-    }
-  }, [gameState, startTime]);
 
   const backgroundClass = useMemo(() => {
     return {

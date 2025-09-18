@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Table,
   TableBody,
@@ -7,19 +9,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useGame } from "@/context/game-provider";
 
-const mockLeaderboard = [
-  { username: "CryptoKing", profit: 250.75, multiplier: 12.54, avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d" },
-  { username: "LuckyLuke", profit: 221.3, multiplier: 8.91, avatar: "https://i.pravatar.cc/150?u=a042581f4e29026705d" },
-  { username: "Satoshi", profit: 198.45, multiplier: 25.01, avatar: "https://i.pravatar.cc/150?u=a042581f4e29026706d" },
-  { username: "MoonRider", profit: 180.9, multiplier: 15.2, avatar: "https://i.pravatar.cc/150?u=a042581f4e29026707d" },
-  { username: "HighFlyer", profit: 155.0, multiplier: 5.1, avatar: "https://i.pravatar.cc/150?u=a042581f4e29026708d" },
-  { username: "BetGod", profit: 142.1, multiplier: 10.12, avatar: "https://i.pravatar.cc/150?u=a042581f4e29026709d" },
-  { username: "Winner22", profit: 130.5, multiplier: 3.45, avatar: "https://i.pravatar.cc/150?u=a042581f4e29026710d" },
-  { username: "CashQueen", profit: 115.8, multiplier: 1.99, avatar: "https://i.pravatar.cc/150?u=a042581f4e29026711d" },
-];
 
 export function Leaderboard() {
+  const { leaderboard } = useGame();
   return (
     <div className="p-4">
       <Table>
@@ -31,8 +25,8 @@ export function Leaderboard() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {mockLeaderboard.map((player) => (
-            <TableRow key={player.username}>
+          {leaderboard.map((player, index) => (
+            <TableRow key={player.username + index}>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <Avatar className="w-6 h-6">

@@ -6,46 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-
-type GameState = "waiting" | "in-progress" | "crashed";
-type PlayerState = "idle" | "betting" | "cashed_out";
-
-const useGameStore = () => {
-  const [gameState, setGameState] = useState<GameState>("waiting");
-  const [multiplier, setMultiplier] = useState(1.0);
-  const [balance, setBalance] = useState(100.0);
-
-  useEffect(() => {
-    // This would typically be a WebSocket or real-time DB listener
-    const interval = setInterval(() => {
-      if (Math.random() > 0.8) {
-        setGameState((prev) =>
-          prev === "waiting" ? "in-progress" : "crashed"
-        );
-      }
-      if (gameState === "crashed") {
-        setTimeout(() => setGameState("waiting"), 3000);
-      }
-      if (gameState === "in-progress") {
-        setMultiplier((m) => m + 0.05 + Math.random() * 0.1);
-      } else {
-        setMultiplier(1.0);
-      }
-    }, 500);
-    return () => clearInterval(interval);
-  }, [gameState]);
-
-  return { gameState, multiplier, balance, setBalance };
-};
+import { useGame } from "@/context/game-provider";
+import type { PlayerState } from "@/context/game-provider";
 
 export function BetControls() {
-  const { gameState, multiplier, balance, setBalance } = useGameStore();
+  const {
+    gameState,
+    multiplier,
+    balance,
+    setBalance,
+    playerState,
+    setPlayerState,
+    addHistory,
+    addLeaderboard,
+    incrementTotalBets,
+    addToTotalWon,
+    checkHighestMultiplier,
+    recalculateWinRate,
+  } = useGame();
   const { toast } = useToast();
 
   const [betAmount, setBetAmount] = useState("10.00");
   const [autoCashoutEnabled, setAutoCashoutEnabled] = useState(false);
   const [autoCashoutAmount, setAutoCashoutAmount] = useState("2.00");
-  const [playerState, setPlayerState] = useState<PlayerState>("idle");
   const [cashedOutAt, setCashedOutAt] = useState(0);
 
   const hasUserBet = playerState === "betting" || playerState === "cashed_out";
@@ -56,7 +39,7 @@ export function BetControls() {
       setPlayerState("idle");
       setCashedOutAt(0);
     }
-  }, [gameState, playerState]);
+  }, [gameState, playerState, setPlayerState]);
 
   // Auto-cashout logic
   useEffect(() => {
@@ -68,6 +51,7 @@ export function BetControls() {
     ) {
       handleCashout();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [multiplier, gameState, playerState, autoCashoutEnabled, autoCashoutAmount]);
 
   const handlePlaceBet = () => {
@@ -91,6 +75,7 @@ export function BetControls() {
 
     setBalance((b) => b - amount);
     setPlayerState("betting");
+    incrementTotalBets();
     toast({
       title: "Bet Placed!",
       description: `Your bet of ${amount.toFixed(2)} XAF has been placed.`,
@@ -107,6 +92,26 @@ export function BetControls() {
     setBalance((b) => b + winnings);
     setPlayerState("cashed_out");
     setCashedOutAt(multiplier);
+    addToTotalWon(profit);
+
+    const historyItem = {
+      id: Date.now(),
+      crashPoint: multiplier,
+      bet: amount,
+      profit: profit,
+      result: "win" as const,
+    };
+    addHistory(historyItem);
+    recalculateWinRate();
+
+    if (profit > 100) {
+      addLeaderboard({
+        username: "You",
+        profit: profit,
+        multiplier: multiplier,
+        avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
+      });
+    }
 
     toast({
       title: "Cashed Out!",
@@ -115,6 +120,32 @@ export function BetControls() {
       )} XAF at ${multiplier.toFixed(2)}x.`,
     });
   };
+
+  // Handle crash loss
+  useEffect(() => {
+    if (gameState === "crashed" && playerState === "betting") {
+      const amount = parseFloat(betAmount);
+      const historyItem = {
+        id: Date.now(),
+        crashPoint: multiplier,
+        bet: amount,
+        profit: -amount,
+        result: "loss" as const,
+      };
+      addHistory(historyItem);
+      recalculateWinRate();
+      checkHighestMultiplier(multiplier);
+
+      toast({
+        title: "Crashed!",
+        description: `You lost your bet of ${betAmount} XAF.`,
+        variant: "destructive",
+      });
+      setPlayerState("idle"); // Reset for next round
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState]);
+
 
   const renderButton = () => {
     if (playerState === "cashed_out") {
@@ -173,14 +204,6 @@ export function BetControls() {
           </Button>
         );
       case "crashed":
-        if (playerState === 'betting') {
-           toast({
-             title: 'Crashed!',
-             description: `You lost your bet of ${betAmount} XAF.`,
-             variant: 'destructive',
-           });
-           setPlayerState('idle'); // Reset for next round
-        }
         return (
           <Button size="lg" className="w-full h-12 text-lg" disabled>
             Crashed @ {multiplier.toFixed(2)}x
