@@ -1,3 +1,22 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "first-win-achievement",
+      "description": "Icon for the first win achievement.",
+      "imageUrl": "https://picsum.photos/seed/ach1/100/100",
+      "imageHint": "gold medal"
+    },
+    {
+      "id": "high-roller-achievement",
+      "description": "Icon for the high roller achievement.",
+      "imageUrl": "https://picsum.photos/seed/ach2/100/100",
+      "imageHint": "diamond pile"
+    },
+    {
+      "id": "close-call-achievement",
+      "description": "Icon for the close call achievement.",
+      "imageUrl": "https://picsum.photos/seed/ach3/100/100",
+      "imageHint": "explosion bomb"
+    }
+  ]
 }
