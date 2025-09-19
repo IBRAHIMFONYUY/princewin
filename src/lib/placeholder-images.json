@@ -13,10 +13,10 @@
       "imageHint": "diamond pile"
     },
     {
-      "id": "close-call-achievement",
-      "description": "Icon for the close call achievement.",
-      "imageUrl": "https://picsum.photos/seed/ach3/100/100",
-      "imageHint": "explosion bomb"
+      "id": "to-the-moon-achievement",
+      "description": "Icon for the 'To the Moon!' achievement.",
+      "imageUrl": "https://picsum.photos/seed/ach4/100/100",
+      "imageHint": "rocket moon"
     }
   ]
 }

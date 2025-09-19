@@ -39,7 +39,7 @@ export function GameView() {
     const deltaX =
       x - (secondLastPoint.time / maxTime) * width * 0.95;
     const deltaY =
-      y - (secondLastPoint.multiplier / maxMultiplier) * height * 0.9;
+      y - (lastPoint.multiplier / maxMultiplier) * height * 0.9;
 
     const angle = -Math.atan2(deltaY, deltaX) * (180 / Math.PI);
 

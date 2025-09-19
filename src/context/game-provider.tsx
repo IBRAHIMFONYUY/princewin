@@ -1,6 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import type { Achievement } from '@/components/achievements';
+import { initialAchievements } from '@/lib/achievements-data';
 
 // Constants
 const GAME_TICK_MS = 100;
@@ -9,7 +11,7 @@ const CRASHED_DELAY_MS = 3000;
 
 // Types
 export type GameState = "waiting" | "in-progress" | "crashed";
-export type PlayerState = "idle" | "betting" | "cashed_out";
+export type PlayerState = "idle" | "betting" | "cashed_out" | "lost";
 export type ChartDataPoint = { time: number; multiplier: number };
 
 type HistoryItem = {
@@ -31,8 +33,25 @@ type GameStats = {
   totalBets: number;
   totalWon: number;
   highestMultiplier: number;
-  winRate: number;
+  wins: number;
+  losses: number;
 };
+
+type UpdateStatsPayload = {
+  totalBets?: number;
+  totalWon?: number;
+  highestMultiplier?: number;
+  wins?: number;
+  losses?: number;
+}
+
+type UpdateAchievementsPayload = {
+  betAmount: number;
+  multiplier: number;
+  profit: number;
+  isWin: boolean;
+  isCrash: boolean;
+}
 
 interface GameContextType {
   // Game State
@@ -52,13 +71,12 @@ interface GameContextType {
   addHistory: (item: HistoryItem) => void;
   leaderboard: LeaderboardItem[];
   addLeaderboard: (item: LeaderboardItem) => void;
+  achievements: Achievement[];
+  updateAchievements: (payload: UpdateAchievementsPayload) => void;
   
   // Stats
-  stats: GameStats;
-  incrementTotalBets: () => void;
-  addToTotalWon: (amount: number) => void;
-  checkHighestMultiplier: (multiplier: number) => void;
-  recalculateWinRate: () => void;
+  stats: GameStats & { winRate: number };
+  updateStats: (payload: UpdateStatsPayload) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -85,19 +103,21 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [countdown, setCountdown] = useState(WAITING_TIME_MS / 1000);
   
   // Player State
-  const [balance, setBalance] = useState(100.00);
+  const [balance, setBalance] = useState(1000.00);
   const [playerState, setPlayerState] = useState<PlayerState>("idle");
   
   // Data
   const [history, setHistory] = useState<HistoryItem[]>(initialHistory);
   const [leaderboard, setLeaderboard] = useState<LeaderboardItem[]>(initialLeaderboard);
+  const [achievements, setAchievements] = useState<Achievement[]>(initialAchievements);
   
   // Stats
   const [stats, setStats] = useState<GameStats>({
     totalBets: 0,
     totalWon: 0,
     highestMultiplier: 1.0,
-    winRate: 0,
+    wins: 0,
+    losses: 0,
   });
 
   // Game Loop
@@ -152,7 +172,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     }
 
     if (gameState === "crashed") {
-      checkHighestMultiplier(multiplier);
+      updateStats({ highestMultiplier: multiplier });
       gameLoop = setTimeout(() => {
         setGameState("waiting");
       }, CRASHED_DELAY_MS);
@@ -171,26 +191,50 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     setLeaderboard(prev => [...prev, item].sort((a,b) => b.profit - a.profit).slice(0, 10));
   }, []);
 
-  // Stats Functions
-  const incrementTotalBets = useCallback(() => {
-    setStats(prev => ({ ...prev, totalBets: prev.totalBets + 1 }));
+  const updateStats = useCallback((payload: UpdateStatsPayload) => {
+    setStats(prev => ({
+      ...prev,
+      totalBets: prev.totalBets + (payload.totalBets || 0),
+      totalWon: prev.totalWon + (payload.totalWon || 0),
+      highestMultiplier: Math.max(prev.highestMultiplier, payload.highestMultiplier || 0),
+      wins: prev.wins + (payload.wins || 0),
+      losses: prev.losses + (payload.losses || 0),
+    }));
   }, []);
 
-  const addToTotalWon = useCallback((amount: number) => {
-    setStats(prev => ({...prev, totalWon: prev.totalWon + amount }));
-  }, []);
+  const updateAchievements = useCallback((payload: UpdateAchievementsPayload) => {
+    setAchievements(prev => {
+      return prev.map(ach => {
+        if (ach.unlocked) return ach;
 
-  const checkHighestMultiplier = useCallback((multiplier: number) => {
-    setStats(prev => ({...prev, highestMultiplier: Math.max(prev.highestMultiplier, multiplier)}));
-  }, []);
+        let newProgress = ach.progress;
+        let unlocked = false;
 
-  const recalculateWinRate = useCallback(() => {
-    setStats(prev => {
-        const wins = history.filter(h => h.result === 'win').length;
-        const newWinRate = prev.totalBets > 0 ? (wins / prev.totalBets) * 100 : 0;
-        return { ...prev, winRate: newWinRate };
+        switch (ach.id) {
+          case 1: // First Win
+            if (payload.isWin && payload.multiplier > 1.01) {
+              newProgress = 100;
+              unlocked = true;
+            }
+            break;
+          case 2: // High Roller
+            newProgress = Math.min(100, ach.progress + payload.betAmount / 1000 * 100);
+            if (newProgress >= 100) unlocked = true;
+            break;
+          case 3: // To the Moon
+            if (payload.isWin && payload.multiplier >= 100) {
+              newProgress = 100;
+              unlocked = true;
+            }
+            break;
+        }
+
+        return { ...ach, progress: newProgress, unlocked };
+      });
     });
-  }, [history]);
+  }, []);
+
+  const winRate = stats.totalBets > 0 ? (stats.wins / stats.totalBets) * 100 : 0;
 
 
   const value = {
@@ -206,11 +250,10 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     addHistory,
     leaderboard,
     addLeaderboard,
-    stats,
-    incrementTotalBets,
-    addToTotalWon,
-    checkHighestMultiplier,
-    recalculateWinRate,
+    achievements,
+    updateAchievements,
+    stats: { ...stats, winRate },
+    updateStats,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

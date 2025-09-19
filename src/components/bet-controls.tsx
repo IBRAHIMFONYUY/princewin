@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useGame } from "@/context/game-provider";
-import type { PlayerState } from "@/context/game-provider";
+import { cn } from "@/lib/utils";
 
 export function BetControls() {
   const {
@@ -19,25 +19,23 @@ export function BetControls() {
     setPlayerState,
     addHistory,
     addLeaderboard,
-    incrementTotalBets,
-    addToTotalWon,
-    checkHighestMultiplier,
-    recalculateWinRate,
+    updateStats,
+    updateAchievements,
   } = useGame();
   const { toast } = useToast();
 
   const [betAmount, setBetAmount] = useState("10.00");
   const [autoCashoutEnabled, setAutoCashoutEnabled] = useState(false);
   const [autoCashoutAmount, setAutoCashoutAmount] = useState("2.00");
-  const [cashedOutAt, setCashedOutAt] = useState(0);
 
   const hasUserBet = playerState === "betting" || playerState === "cashed_out";
 
   // Reset player state for new round
   useEffect(() => {
-    if (gameState === "waiting" && playerState !== "idle") {
-      setPlayerState("idle");
-      setCashedOutAt(0);
+    if (gameState === "waiting") {
+      if (playerState === "cashed_out" || playerState === "lost") {
+        setPlayerState("idle");
+      }
     }
   }, [gameState, playerState, setPlayerState]);
 
@@ -75,7 +73,7 @@ export function BetControls() {
 
     setBalance((b) => b - amount);
     setPlayerState("betting");
-    incrementTotalBets();
+    updateStats({ totalBets: 1 });
     toast({
       title: "Bet Placed!",
       description: `Your bet of ${amount.toFixed(2)} XAF has been placed.`,
@@ -91,18 +89,18 @@ export function BetControls() {
 
     setBalance((b) => b + winnings);
     setPlayerState("cashed_out");
-    setCashedOutAt(multiplier);
-    addToTotalWon(profit);
+    
+    updateStats({ totalWon: profit, highestMultiplier: multiplier, wins: 1 });
+    updateAchievements({ betAmount: amount, multiplier, profit, isWin: true, isCrash: false });
 
-    const historyItem = {
+
+    addHistory({
       id: Date.now(),
       crashPoint: multiplier,
       bet: amount,
       profit: profit,
-      result: "win" as const,
-    };
-    addHistory(historyItem);
-    recalculateWinRate();
+      result: "win",
+    });
 
     if (profit > 100) {
       addLeaderboard({
@@ -112,8 +110,6 @@ export function BetControls() {
         avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
       });
     }
-
-    checkHighestMultiplier(multiplier);
 
     toast({
       title: "Cashed Out!",
@@ -127,94 +123,32 @@ export function BetControls() {
   useEffect(() => {
     if (gameState === "crashed" && playerState === "betting") {
       const amount = parseFloat(betAmount);
-      const historyItem = {
+      
+      setPlayerState("lost");
+      updateStats({ losses: 1 });
+      updateAchievements({ betAmount: amount, multiplier, profit: -amount, isWin: false, isCrash: true });
+
+      addHistory({
         id: Date.now(),
         crashPoint: multiplier,
         bet: amount,
         profit: -amount,
-        result: "loss" as const,
-      };
-      addHistory(historyItem);
-      recalculateWinRate();
+        result: "loss",
+      });
 
       toast({
         title: "Crashed!",
         description: `You lost your bet of ${betAmount} XAF.`,
         variant: "destructive",
       });
-      setPlayerState("idle"); // Reset for next round
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState]);
 
 
-  const renderButton = () => {
-    if (playerState === "cashed_out") {
-      return (
-        <Button
-          size="lg"
-          className="w-full h-12 text-lg bg-green-600 hover:bg-green-700"
-          disabled
-        >
-          Cashed Out @ {cashedOutAt.toFixed(2)}x
-        </Button>
-      );
-    }
-
-    switch (gameState) {
-      case "waiting":
-        if (playerState === "betting") {
-          return (
-            <Button
-              size="lg"
-              className="w-full h-12 text-lg"
-              variant="destructive"
-              onClick={() => {
-                setPlayerState("idle");
-                setBalance(b => b + parseFloat(betAmount));
-              }}
-            >
-              Cancel Bet
-            </Button>
-          );
-        }
-        return (
-          <Button
-            size="lg"
-            className="w-full h-12 text-lg"
-            onClick={handlePlaceBet}
-          >
-            Place Bet
-          </Button>
-        );
-      case "in-progress":
-        if (playerState === "betting") {
-          return (
-            <Button
-              size="lg"
-              className="w-full h-12 text-lg bg-green-500 text-white hover:bg-green-600"
-              onClick={handleCashout}
-            >
-              Cash Out {multiplier.toFixed(2)}x
-            </Button>
-          );
-        }
-        return (
-          <Button size="lg" className="w-full h-12 text-lg" disabled>
-            Running...
-          </Button>
-        );
-      case "crashed":
-        return (
-          <Button size="lg" className="w-full h-12 text-lg" disabled>
-            Crashed @ {multiplier.toFixed(2)}x
-          </Button>
-        );
-    }
-  };
-
   return (
     <div className="p-4 space-y-4">
+       <h3 className="text-lg font-semibold text-primary">Place Your Bet</h3>
       <div className="space-y-2">
         <Label htmlFor="bet-amount">Bet Amount</Label>
         <div className="relative">
@@ -255,7 +189,24 @@ export function BetControls() {
           </div>
         )}
       </div>
-      {renderButton()}
+       <div className="grid grid-cols-2 gap-2">
+         <Button
+           size="lg"
+           className="w-full h-12 text-lg"
+           onClick={handlePlaceBet}
+           disabled={hasUserBet || gameState !== 'waiting'}
+         >
+           Place Bet
+         </Button>
+         <Button
+           size="lg"
+           className="w-full h-12 text-lg bg-green-500 text-white hover:bg-green-600 disabled:bg-green-500/50"
+           onClick={handleCashout}
+           disabled={playerState !== 'betting' || gameState !== 'in-progress'}
+         >
+           Cash Out
+         </Button>
+       </div>
     </div>
   );
 }

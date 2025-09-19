@@ -1,49 +1,25 @@
+
+"use client";
+
 import Image from "next/image";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Lock } from "lucide-react";
+import { useGame } from "@/context/game-provider";
 
-const achievements = [
-  {
-    id: 1,
-    title: "First Win",
-    description: "Achieve your first cash out over 1.01x.",
-    progress: 100,
-    goal: 100,
-    unlocked: true,
-    imageId: "first-win-achievement",
-  },
-  {
-    id: 2,
-    title: "High Roller",
-    description: "Place a total of 1 BTC in bets.",
-    progress: 25,
-    goal: 100,
-    unlocked: false,
-    imageId: "high-roller-achievement",
-  },
-  {
-    id: 3,
-    title: "To the Moon!",
-    description: "Cash out at over 100x.",
-    progress: 0,
-    goal: 100,
-    unlocked: false,
-    imageId: "close-call-achievement",
-  },
-  {
-    id: 4,
-    title: "Close Call",
-    description: "Cash out within 0.05 of a crash.",
-    progress: 100,
-    goal: 100,
-    unlocked: true,
-    imageId: "close-call-achievement",
-  },
-];
+export type Achievement = {
+  id: number;
+  title: string;
+  description: string;
+  progress: number;
+  goal: number;
+  unlocked: boolean;
+  imageId: string;
+};
 
 export function Achievements() {
+  const { achievements } = useGame();
+
   return (
     <div className="p-4 space-y-4">
       {achievements.map((ach) => {
@@ -79,7 +55,7 @@ export function Achievements() {
               <p className="text-sm text-muted-foreground">
                 {ach.description}
               </p>
-              {ach.progress < ach.goal && (
+              {!ach.unlocked && ach.progress < ach.goal && (
                 <Progress value={ach.progress} className="mt-2 h-2" />
               )}
             </div>
