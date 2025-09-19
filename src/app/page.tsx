@@ -11,7 +11,7 @@ export default function LandingPage() {
       <LandingHeader />
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative w-full flex flex-col items-center justify-center text-center p-4 pt-16 md:pt-24">
+        <section className="relative w-full flex flex-col items-center justify-center text-center p-4 pt-12 md:pt-16">
           <div className="relative w-full max-w-4xl h-64 md:h-96 rounded-lg overflow-hidden border border-primary/20 mb-8">
             <div className="absolute inset-0 opacity-30">
               <GameProvider>
