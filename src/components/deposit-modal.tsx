@@ -14,8 +14,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { DropdownMenuItem } from "./ui/dropdown-menu";
+import { CreditCard } from "lucide-react";
 
-export function DepositModal() {
+type DepositModalProps = {
+  isDropdown?: boolean;
+};
+
+export function DepositModal({ isDropdown = false }: DepositModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const { toast } = useToast();
@@ -34,17 +40,26 @@ export function DepositModal() {
     // In a real app, this would trigger a payment gateway.
     toast({
       title: "Deposit Initiated",
-      description: `Your deposit of ${parsedAmount.toFixed(2)} XAF is being processed.`,
+      description: `Your deposit of ${parsedAmount.toFixed(
+        2
+      )} XAF is being processed.`,
     });
     setIsOpen(false);
     setAmount("");
   };
 
+  const Trigger = isDropdown ? (
+    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+      <CreditCard className="mr-2 h-4 w-4" />
+      <span>Deposit</span>
+    </DropdownMenuItem>
+  ) : (
+    <Button>Deposit</Button>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button>Deposit</Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{Trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Deposit Funds</DialogTitle>
@@ -64,8 +79,14 @@ export function DepositModal() {
             />
           </div>
           <div className="text-xs text-muted-foreground space-y-2">
-            <p><strong>NB:</strong> To complete the transaction, please approve the payment prompt sent to your mobile phone.</p>
-            <p>Ensure your mobile money account has sufficient funds before proceeding.</p>
+            <p>
+              <strong>NB:</strong> To complete the transaction, please approve
+              the payment prompt sent to your mobile phone.
+            </p>
+            <p>
+              Ensure your mobile money account has sufficient funds before
+              proceeding.
+            </p>
           </div>
         </div>
         <DialogFooter>
