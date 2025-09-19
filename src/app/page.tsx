@@ -12,17 +12,17 @@ export default function LandingPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative w-full flex flex-col items-center justify-center text-center p-4 pt-12 md:pt-16">
-          <div className="relative w-full max-w-4xl h-64 md:h-96 rounded-lg overflow-hidden border border-primary/20 mb-8">
+          <div className="relative w-full max-w-4xl h-80 md:h-96 rounded-lg overflow-hidden border border-primary/20 mb-8">
             <div className="absolute inset-0 opacity-30">
               <GameProvider>
                 <GameView />
               </GameProvider>
             </div>
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-t from-background via-background/80 to-transparent p-4">
-              <h1 className="text-4xl md:text-6xl font-bold font-headline text-primary text-shadow-lg">
+              <h1 className="text-3xl md:text-6xl font-bold font-headline text-primary text-shadow-lg">
                 Welcome to PrinceWin
               </h1>
-              <p className="mt-4 max-w-xl text-lg text-muted-foreground">
+              <p className="mt-4 max-w-xl text-md md:text-lg text-muted-foreground">
                 The ultimate crash game where timing is everything. Place your bet, watch the multiplier climb, and cash out before the crash to win big.
               </p>
               <div className="mt-8">
