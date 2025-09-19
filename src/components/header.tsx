@@ -17,6 +17,7 @@ import { AboutModal } from "./about-modal";
 import { TermsModal } from "./terms-modal";
 import { FaqModal } from "./faq-modal";
 import { LanguageSwitcher } from "./language-switcher";
+import { WithdrawModal } from "./withdraw-modal";
 
 const translations = {
   english: {
@@ -82,6 +83,7 @@ export function Header() {
               <div className="sm:hidden">
                 <DepositModal isDropdown />
               </div>
+              <WithdrawModal isDropdown />
               <FaqModal />
               <AboutModal />
               <TermsModal />

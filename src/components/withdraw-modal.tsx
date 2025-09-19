@@ -15,51 +15,69 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { DropdownMenuItem } from "./ui/dropdown-menu";
-import { CreditCard } from "lucide-react";
+import { Landmark } from "lucide-react";
 import { useGame } from "@/context/game-provider";
 
-type DepositModalProps = {
+type WithdrawModalProps = {
   isDropdown?: boolean;
 };
 
-export function DepositModal({ isDropdown = false }: DepositModalProps) {
+export function WithdrawModal({ isDropdown = false }: WithdrawModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState("");
+  const [phone, setPhone] = useState("");
   const { toast } = useToast();
-  const { setBalance } = useGame();
+  const { balance, setBalance } = useGame();
 
-  const handleDeposit = () => {
+  const handleWithdraw = () => {
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
       toast({
         title: "Invalid Amount",
-        description: "Please enter a valid amount to deposit.",
+        description: "Please enter a valid amount to withdraw.",
         variant: "destructive",
       });
       return;
     }
 
+    if (parsedAmount > balance) {
+      toast({
+        title: "Insufficient Balance",
+        description: "You cannot withdraw more than your current balance.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!/^\d{9,15}$/.test(phone)) {
+        toast({
+            title: "Invalid Phone Number",
+            description: "Please enter a valid phone number.",
+            variant: "destructive",
+        });
+        return;
+    }
+
     // In a real app, this would trigger a payment gateway.
     // Here, we just simulate the balance update.
-    setBalance(prev => prev + parsedAmount);
+    setBalance(prev => prev - parsedAmount);
 
     toast({
-      title: "Deposit Successful",
-      description: `Your balance has been credited with ${parsedAmount.toFixed(
-        2
-      )} XAF.`,
+      title: "Withdrawal Successful",
+      description: `${parsedAmount.toFixed(2)} XAF has been sent to ${phone}.`,
     });
     setIsOpen(false);
     setAmount("");
+    setPhone("");
   };
 
   const Trigger = isDropdown ? (
     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-      <CreditCard className="mr-2 h-4 w-4" />
-      <span>Deposit</span>
+      <Landmark className="mr-2 h-4 w-4" />
+      <span>Withdraw</span>
     </DropdownMenuItem>
   ) : (
-    <Button>Deposit</Button>
+    <Button>Withdraw</Button>
   );
 
   return (
@@ -67,30 +85,35 @@ export function DepositModal({ isDropdown = false }: DepositModalProps) {
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Deposit Funds</DialogTitle>
+          <DialogTitle>Withdraw Funds</DialogTitle>
           <DialogDescription>
-            Add funds to your account using MTN Mobile Money or Orange Money.
+            Withdraw your winnings to your MTN Mobile Money or Orange Money account.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount (XAF)</Label>
+            <Label htmlFor="withdraw-amount">Amount (XAF)</Label>
             <Input
-              id="amount"
+              id="withdraw-amount"
               type="number"
               placeholder="e.g., 5000"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
           </div>
+           <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="e.g., 67... or 69..."
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
           <div className="text-xs text-muted-foreground space-y-2">
             <p>
-              <strong>NB:</strong> To complete the transaction, please approve
-              the payment prompt sent to your mobile phone.
-            </p>
-            <p>
-              Ensure your mobile money account has sufficient funds before
-              proceeding.
+              <strong>NB:</strong> Funds will be sent to the provided mobile money account. Please double-check the number.
             </p>
           </div>
         </div>
@@ -98,7 +121,7 @@ export function DepositModal({ isDropdown = false }: DepositModalProps) {
           <Button variant="outline" onClick={() => setIsOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleDeposit}>Proceed to Deposit</Button>
+          <Button onClick={handleWithdraw}>Request Withdrawal</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
