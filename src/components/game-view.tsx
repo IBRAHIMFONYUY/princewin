@@ -79,7 +79,7 @@ export function GameView() {
 
 
   return (
-    <Card className="flex flex-col h-[500px] md:h-auto border-primary/20">
+    <Card className="flex flex-col h-[500px] flex-grow w-full border-primary/20">
       <div className="p-2 border-b border-primary/20 flex justify-between items-center">
         <span
           className={cn("text-lg font-bold", {
