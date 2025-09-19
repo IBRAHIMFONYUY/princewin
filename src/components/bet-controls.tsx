@@ -113,6 +113,8 @@ export function BetControls() {
       });
     }
 
+    checkHighestMultiplier(multiplier);
+
     toast({
       title: "Cashed Out!",
       description: `You won ${profit.toFixed(
@@ -134,7 +136,6 @@ export function BetControls() {
       };
       addHistory(historyItem);
       recalculateWinRate();
-      checkHighestMultiplier(multiplier);
 
       toast({
         title: "Crashed!",
