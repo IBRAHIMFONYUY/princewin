@@ -13,6 +13,8 @@ const CRASHED_DELAY_MS = 3000;
 export type GameState = "waiting" | "in-progress" | "crashed";
 export type PlayerState = "idle" | "betting" | "cashed_out" | "lost";
 export type ChartDataPoint = { time: number; multiplier: number };
+export type Language = "english" | "french" | "spanish";
+
 
 type HistoryItem = {
   id: number;
@@ -79,6 +81,10 @@ interface GameContextType {
   // Stats
   stats: GameStats & { winRate: number };
   updateStats: (payload: UpdateStatsPayload) => void;
+
+  // Language
+  language: Language;
+  setLanguage: React.Dispatch<React.SetStateAction<Language>>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -122,6 +128,9 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     wins: 0,
     losses: 0,
   });
+
+  // Language
+  const [language, setLanguage] = useState<Language>("english");
 
   // Game Loop
   useEffect(() => {
@@ -265,6 +274,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     updateAchievements,
     stats: { ...stats, winRate },
     updateStats,
+    language,
+    setLanguage,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

@@ -7,11 +7,15 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
+import { useGame, type Language } from "@/context/game-provider";
 import { Languages } from "lucide-react";
-import { useState } from "react";
 
 export function LanguageSwitcher() {
-  const [language, setLanguage] = useState("english");
+  const { language, setLanguage } = useGame();
+
+  const handleLanguageChange = (value: string) => {
+    setLanguage(value as Language);
+  };
 
   return (
     <DropdownMenuSub>
@@ -20,7 +24,10 @@ export function LanguageSwitcher() {
         <span>Language</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent>
-        <DropdownMenuRadioGroup value={language} onValueChange={setLanguage}>
+        <DropdownMenuRadioGroup
+          value={language}
+          onValueChange={handleLanguageChange}
+        >
           <DropdownMenuRadioItem value="english">English</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="french">Français</DropdownMenuRadioItem>
           <DropdownMenuRadioItem value="spanish">Español</DropdownMenuRadioItem>

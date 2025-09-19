@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown, LogOut, MoreVertical, Wallet } from "lucide-react";
+import { LogOut, MoreVertical, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Exchange } from "./icons";
 import { DepositModal } from "./deposit-modal";
@@ -18,8 +18,28 @@ import { TermsModal } from "./terms-modal";
 import { FaqModal } from "./faq-modal";
 import { LanguageSwitcher } from "./language-switcher";
 
+const translations = {
+  english: {
+    title: "PrinceWin",
+    myAccount: "My Account",
+    logout: "Logout",
+  },
+  french: {
+    title: "PrinceGagner",
+    myAccount: "Mon Compte",
+    logout: "Déconnexion",
+  },
+  spanish: {
+    title: "PríncipeGanar",
+    myAccount: "Mi Cuenta",
+    logout: "Cerrar Sesión",
+  },
+};
+
 export function Header() {
-  const { balance } = useGame();
+  const { balance, language } = useGame();
+  const t = translations[language];
+
 
   const handleLogout = () => {
     // In a real app, you would clear tokens and redirect
@@ -35,7 +55,7 @@ export function Header() {
             <Exchange className="w-6 h-6 text-primary-foreground" />
           </div>
           <h1 className="text-2xl font-bold font-headline text-primary">
-            PrinceWin
+            {t.title}
           </h1>
         </div>
         <div className="flex items-center gap-4">
@@ -57,7 +77,7 @@ export function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>{t.myAccount}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <div className="sm:hidden">
                 <DepositModal isDropdown />
@@ -68,7 +88,7 @@ export function Header() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Logout</span>
+                <span>{t.logout}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
                <LanguageSwitcher />
