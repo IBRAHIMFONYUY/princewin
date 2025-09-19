@@ -1,65 +1,37 @@
-import { Achievements } from "@/components/achievements";
+import { LandingHeader } from "@/components/landing-header";
+import { Button } from "@/components/ui/button";
 import { GameView } from "@/components/game-view";
-import { Header } from "@/components/header";
-import { History } from "@/components/history";
-import { StatsBar } from "@/components/stats-bar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { BetControls } from "@/components/bet-controls";
-import { Leaderboard } from "@/components/leaderboard";
 import { GameProvider } from "@/context/game-provider";
+import Link from "next/link";
 
-export default function Home() {
+export default function LandingPage() {
   return (
-    <GameProvider>
-      <div className="flex flex-col min-h-screen bg-background text-foreground">
-        <Header />
-        <main className="flex-1 p-4 space-y-4">
-          <StatsBar />
-          <div className="grid md:grid-cols-[1fr_350px] gap-4">
-            <GameView />
-            <div className="flex flex-col gap-4">
-              <Card>
-                <BetControls />
-              </Card>
-              <Card className="flex flex-col overflow-hidden flex-grow">
-                <Tabs defaultValue="history" className="h-full flex flex-col">
-                  <TabsList className="grid w-full grid-cols-3 rounded-none">
-                    <TabsTrigger value="history">History</TabsTrigger>
-                    <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-                    <TabsTrigger value="achievements">Achievements</TabsTrigger>
-                  </TabsList>
-                  <TabsContent
-                    value="history"
-                    className="flex-grow mt-0 overflow-hidden"
-                  >
-                    <ScrollArea className="h-full">
-                      <History />
-                    </ScrollArea>
-                  </TabsContent>
-                  <TabsContent
-                    value="leaderboard"
-                    className="flex-grow mt-0 overflow-hidden"
-                  >
-                    <ScrollArea className="h-full">
-                      <Leaderboard />
-                    </ScrollArea>
-                  </TabsContent>
-                  <TabsContent
-                    value="achievements"
-                    className="flex-grow mt-0 overflow-hidden"
-                  >
-                    <ScrollArea className="h-full">
-                      <Achievements />
-                    </ScrollArea>
-                  </TabsContent>
-                </Tabs>
-              </Card>
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
+      <LandingHeader />
+      <main className="flex-1 flex flex-col items-center justify-center text-center p-4">
+        <div className="relative w-full max-w-4xl h-64 md:h-96 rounded-lg overflow-hidden border border-primary/20 mb-8">
+          <div className="absolute inset-0 opacity-30">
+            <GameProvider>
+              <GameView />
+            </GameProvider>
+          </div>
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-t from-background via-background/80 to-transparent">
+            <h1 className="text-4xl md:text-6xl font-bold font-headline text-primary text-shadow-lg">
+              Welcome to PrinceWin
+            </h1>
+            <p className="mt-4 max-w-xl text-lg text-muted-foreground">
+              The ultimate crash game where timing is everything. Place your bet, watch the multiplier climb, and cash out before the crash to win big.
+            </p>
+            <div className="mt-8">
+              <Link href="/game">
+                <Button size="lg" className="h-12 text-lg">
+                  Play Now
+                </Button>
+              </Link>
             </div>
           </div>
-        </main>
-      </div>
-    </GameProvider>
+        </div>
+      </main>
+    </div>
   );
 }
