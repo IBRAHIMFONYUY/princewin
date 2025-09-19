@@ -32,6 +32,7 @@ type LeaderboardItem = {
 type GameStats = {
   totalBets: number;
   totalWon: number;
+  totalWagered: number;
   highestMultiplier: number;
   wins: number;
   losses: number;
@@ -40,6 +41,7 @@ type GameStats = {
 type UpdateStatsPayload = {
   totalBets?: number;
   totalWon?: number;
+  betAmount?: number;
   highestMultiplier?: number;
   wins?: number;
   losses?: number;
@@ -115,6 +117,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [stats, setStats] = useState<GameStats>({
     totalBets: 0,
     totalWon: 0,
+    totalWagered: 0,
     highestMultiplier: 1.0,
     wins: 0,
     losses: 0,
@@ -196,6 +199,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       ...prev,
       totalBets: prev.totalBets + (payload.totalBets || 0),
       totalWon: prev.totalWon + (payload.totalWon || 0),
+      totalWagered: prev.totalWagered + (payload.betAmount || 0),
       highestMultiplier: Math.max(prev.highestMultiplier, payload.highestMultiplier || 0),
       wins: prev.wins + (payload.wins || 0),
       losses: prev.losses + (payload.losses || 0),
@@ -204,25 +208,30 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
   const updateAchievements = useCallback((payload: UpdateAchievementsPayload) => {
     setAchievements(prev => {
-      return prev.map(ach => {
+      const newAchievements = prev.map(ach => {
         if (ach.unlocked) return ach;
 
         let newProgress = ach.progress;
-        let unlocked = false;
+        let unlocked = ach.unlocked;
 
         switch (ach.id) {
           case 1: // First Win
-            if (payload.isWin && payload.multiplier > 1.01) {
+            if (payload.isWin && !ach.unlocked) {
               newProgress = 100;
               unlocked = true;
             }
             break;
           case 2: // High Roller
-            newProgress = Math.min(100, ach.progress + payload.betAmount / 1000 * 100);
-            if (newProgress >= 100) unlocked = true;
+            if (!ach.unlocked) {
+              const currentWagered = stats.totalWagered + (payload.isWin ? 0 : payload.betAmount)
+              newProgress = Math.min(100, (currentWagered / ach.goal) * 100);
+              if (newProgress >= 100) {
+                unlocked = true;
+              }
+            }
             break;
-          case 3: // To the Moon
-            if (payload.isWin && payload.multiplier >= 100) {
+          case 3: // To the Moon!
+            if (payload.isWin && payload.multiplier >= 100 && !ach.unlocked) {
               newProgress = 100;
               unlocked = true;
             }
@@ -231,8 +240,10 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
 
         return { ...ach, progress: newProgress, unlocked };
       });
+      return newAchievements;
     });
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stats.totalWagered]);
 
   const winRate = stats.totalBets > 0 ? (stats.wins / stats.totalBets) * 100 : 0;
 

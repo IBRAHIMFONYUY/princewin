@@ -73,7 +73,7 @@ export function BetControls() {
 
     setBalance((b) => b - amount);
     setPlayerState("betting");
-    updateStats({ totalBets: 1 });
+    updateStats({ totalBets: 1, betAmount: amount });
     toast({
       title: "Bet Placed!",
       description: `Your bet of ${amount.toFixed(2)} XAF has been placed.`,
